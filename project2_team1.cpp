@@ -44,6 +44,7 @@ int colorValue;
 int entered = 0;
 int start_x = 0;
 int start_y = 0;
+bool can_change_start = true;
 
 // Line Variables
 GLfloat lineScale = 1;
@@ -158,10 +159,13 @@ void helpDisplayCallback() {
 
 void mouseCallback(int button, int state, int x, int y) {
     if (button == 0 && state == 0) {  // Set the starting text position
-        if (x > windowPadding + 15 && start_x == 0)
-            start_x = x;
-        if (y > windowPadding + 30 && start_y == 0)
-            start_y = y;
+        if (x > windowPadding + 15 && start_x == 0 && can_change_start) {
+            if (y > windowPadding + 30 && start_y == 0 && can_change_start) {
+                start_x = x;
+                start_y = y;
+                can_change_start = false;
+            }
+        }
     }
 }
 
@@ -180,12 +184,12 @@ void specialCallback(int key, int x, int y) {
 
 
 void keyboardCallback(unsigned char key, int cursorX, int cursorY) {
-    // Backspace or delete pressed
-    if (int(key) == 8 || int(key) == 127) {
+    if (int(key) == 8 || int(key) == 127) {  // Backspace or delete pressed
         strings[currentIndex] = strings[currentIndex].substr(0, strings[currentIndex].length() - 1);
         if (getTotalCharacters() == 0) {  // Reset Starting text position
             start_x = 0;
             start_y = 0;
+            can_change_start = true;
         }
         if (strings[currentIndex].length() == 0 && currentIndex != 0) {  // Remove a styling entry if it's length is zero
             strings.pop_back();
@@ -197,6 +201,9 @@ void keyboardCallback(unsigned char key, int cursorX, int cursorY) {
     if (int(key) != 8 && int(key) != 127) {
         strings[currentIndex] += key;
         currentPage = totalPages - 1;
+        if (can_change_start) {
+            can_change_start = false;
+        }
     }
     mainDisplayCallback();
 }
@@ -363,7 +370,7 @@ void drawEditorText() {
                     y = start_y + (line * 24);
                 continue;
             }
-            if (x > 500) {  // X coordinate limit reached, move to a new line
+            if (x >= windowWidth - 50) {  // X coordinate limit reached, move to a new line
                 line += 1;
                 overall_line += 1;
                 x = windowPadding + 15;
@@ -373,7 +380,7 @@ void drawEditorText() {
                 else
                     y = start_y + (line * 24);
             }
-            if (y > 755) {  // Y coordinate limit reached, move to a new page
+            if (y >= windowHeight - 20) {  // Y coordinate limit reached, move to a new page
                 page += 1;
                 totalPages += 1;
                 overall_line += 1;
@@ -384,11 +391,10 @@ void drawEditorText() {
             if (page == currentPage) {  // Only render text that belongs to the currentPage
                 glColor3ub(r, g, b);
                 glRasterPos2i(x, y);
-                x += glutBitmapWidth(f, strings[ind][i]);
                 glutBitmapCharacter(f, strings[ind][i]);
             }
+            x += glutBitmapWidth(f, strings[ind][i]);
         }
-
     }
 }
 
@@ -411,7 +417,7 @@ int getTotalLines() {
                 y = windowPadding + 30 + (line * 24);
                 continue;
             }
-            if (x > 585) {
+            if (x > windowWidth - 50) {
                 line += 1;
                 overall_lines += 1;
                 x = windowPadding + 15;
@@ -481,7 +487,7 @@ void drawHelpText() {
 void drawTextLayout() {
     string page = "Page " + to_string(currentPage + 1);
     drawCustomText(page, windowPadding + 5, windowHeight - 5, blackColor, helvetica);
-    drawCustomText("Lines: " + to_string(getTotalLines()), windowPadding + 215, windowHeight - 5, blackColor, helvetica);
+    drawCustomText("Lines: " + to_string(getTotalLines() + 1), windowPadding + 215, windowHeight - 5, blackColor, helvetica);
     drawCustomText("Characters: " + to_string(getTotalCharacters()), windowPadding + 375, windowHeight - 5, blackColor, helvetica);
 }
 
