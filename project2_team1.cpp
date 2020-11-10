@@ -29,37 +29,46 @@
             then select 'Close'                     to HIDE the 'Info' window
 ==================================================================================================*/
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <GL/glut.h>
 
-GLubyte text_color[3] = { 0, 0, 0 };
-int colorValue;
+using namespace std;
+
+// Misc Variables
 int fontValue;
-void* font = GLUT_BITMAP_TIMES_ROMAN_24;
-void* helpFont = GLUT_BITMAP_HELVETICA_18;
-void* axesFont = GLUT_BITMAP_TIMES_ROMAN_24;
-int mainWindow, helpWindow;
+int colorValue;
+int entered = 0;
+int start_x = 0;
+int start_y = 0;
 
 // Line Variables
 GLfloat lineScale = 1;
+string draw_text;
 int blackColor[3] = { 0, 0, 0 };
 
 // Window Variables
+int mainWindow, helpWindow;
 GLint windowPadding = 20;
-GLint windowWidth = 550;
-GLint windowHeight = 775;
+GLint windowWidth = 600 + (windowPadding * 2);
+GLint windowHeight = 800 + (windowPadding * 2);
 
 // Text and Font Variables
-std::string draw_text;
 void* helvetica = GLUT_BITMAP_HELVETICA_18;
 void* roman = GLUT_BITMAP_TIMES_ROMAN_24;
+void* font = roman;
+void* helpFont = helvetica;
+void* axesFont = roman;
+vector<int> text_color = { 0, 0, 0 };
 
 // Page Variables
-std::vector<std::vector<std::string>> pages;
+vector<string> strings;
+vector<void*> fonts;
+vector<vector<int>> colors;
+int currentIndex = 0;
 int currentPage = 0;
-int currentLine = 0;
-int currentChar = 0;
+int totalPages = 1;
 unsigned int maxCharacters = 30;
 unsigned int maxLines = 30;
 
@@ -67,6 +76,7 @@ void mainInit();
 void helpInit();
 void mainDisplayCallback();
 void helpDisplayCallback();
+void specialCallback(int key, int x, int y);
 void keyboardCallback(unsigned char key, int cursorX, int cursorY);
 void mouseCallback(int button, int state, int x, int y);
 void mainMenuHandler(int num);
@@ -74,19 +84,23 @@ void drawMenu();
 void helpMenuHandler(int num);
 void drawHelpMenu();
 void drawEditorText();
-void drawText(std::string input, int x, int y);
 void drawHelpText();
 void setTextColor();
 void setFont();
 void drawLayout();
 void drawTextLayout();
-void drawCustomText(std::string text, int x, int y, int rgb[3], void* font);
-void addPage();
-int getNumberOfCharacters();
+void drawCustomText(string text, int x, int y, int rgb[3], void* font);
+void saveFile();
+int getTotalLines();
+int getTotalCharacters();
 
 
 int main(int argc, char** argv) {
-    addPage();
+    // Initialize Text Editor Variables
+    strings.push_back("");
+    fonts.push_back(font);
+    colors.push_back(text_color);
+
     glutInit(&argc, argv);                          // Initialization
     glutInitWindowSize(windowWidth, windowHeight);  // Specify a window size
     glutInitWindowPosition(300, 10);                // Specify a window position
@@ -95,9 +109,10 @@ int main(int argc, char** argv) {
     mainInit();                                     // Specify some settings
     glutDisplayFunc(mainDisplayCallback);           // Register a callback
     glutKeyboardFunc(keyboardCallback);             // Register a keyboard callback
+    glutSpecialFunc(specialCallback);
     glutMouseFunc(mouseCallback);
     glutInitWindowSize(500, 275);                   // Specify a window size
-    glutInitWindowPosition(855, 250);               // Specify a window position
+    glutInitWindowPosition(940, 250);               // Specify a window position
     helpWindow = glutCreateWindow("Info");
     drawHelpMenu();
     helpInit();
@@ -137,46 +152,50 @@ void helpDisplayCallback() {
 
 
 void mouseCallback(int button, int state, int x, int y) {
-    if (button == 0 && state == 0) {
-        int line = (y - (windowPadding + 6)) / 24;
-        if (line > maxLines - 1)
-            line = maxLines - 1;
-        if (line < 0)
-            line = 0;
-        currentLine = line;
+    if (button == 0 && state == 0) { // Set the starting text position
+        if (x > windowPadding + 15 && start_x == 0) {
+            start_x = x;
+        }
+        if (y > windowPadding + 30 && start_y == 0) {
+            start_y = y;
+        }
     }
+}
+
+void specialCallback(int key, int x, int y) {
+    if (key == GLUT_KEY_RIGHT) { // Go forward a page
+        currentPage += 1;
+    }
+    else if (key == GLUT_KEY_LEFT) { // Go backwards a page
+        currentPage -= 1;
+        if (currentPage == -1) {
+            currentPage = 0;
+        }
+    }
+    mainDisplayCallback();
 }
 
 
 void keyboardCallback(unsigned char key, int cursorX, int cursorY) {
-    // Go to next line when over 30 characters
-    if (pages[currentPage][currentLine].length() > (maxCharacters - 1))
-        currentLine += 1;
-    // Enter key pressed
-    if (int(key) == 13)
-        currentLine += 1;
-    // If exceeds lines on page, it creates a new page
-    if (currentLine == maxLines) {
-        currentLine = 0;
-        currentPage += 1;
-        addPage();
-    }
     // Backspace or delete pressed
     if (int(key) == 8 || int(key) == 127) {
-        pages[currentPage][currentLine] = pages[currentPage][currentLine].substr(0, pages[currentPage][currentLine].length() - 1);
-        if (pages[currentPage][currentLine].length() == 0) {
-            currentLine -= 1;
-            if (currentLine < 0)
-                currentLine = 0;
-            if (currentPage != 0 && currentLine == 0) {
-                currentLine = maxLines - 1;
-                currentPage -= 1;
-            }
+        strings[currentIndex] = strings[currentIndex].substr(0, strings[currentIndex].length() - 1);
+        if (getTotalCharacters() == 0) { // Reset Starting text position
+            start_x = 0;
+            start_y = 0;
+        }
+        if (strings[currentIndex].length() == 0 && currentIndex != 0) { // Remove a styling entry if it's length is zero
+            strings.pop_back();
+            fonts.pop_back();
+            colors.pop_back();
+            currentIndex -= 1;
         }
     }
-    if (int(key) != 8 && int(key) != 127 && int(key) != 13)
-        pages[currentPage][currentLine] += key;
-    
+
+    if (int(key) != 8 && int(key) != 127) {
+        strings[currentIndex] += key;
+        currentPage = totalPages - 1;
+    }
     mainDisplayCallback();
 }
 
@@ -212,22 +231,38 @@ void setTextColor() {
         text_color[1] = rand() % 256;
         text_color[2] = rand() % 256;
     }
+    strings.push_back("");
+    fonts.push_back(font);
+    colors.push_back(text_color);
+    currentIndex += 1;
 }
 
 
 void setFont() {
-    if (fontValue == 6)
+    if (fontValue == 6) {
         font = GLUT_BITMAP_9_BY_15;
-    if (fontValue == 7)
+    }
+    if (fontValue == 7) {
         font = GLUT_BITMAP_HELVETICA_18;
-    else if (fontValue == 8)
+    }
+    else if (fontValue == 8) {
         font = GLUT_BITMAP_TIMES_ROMAN_24;
+    }
+    strings.push_back("");
+    fonts.push_back(font);
+    colors.push_back(text_color);
+    currentIndex += 1;
 }
 
 
 void mainMenuHandler(int num) {
-    if (num == 0)
+    if (num == 10) {
+        saveFile();
+    }
+    else if (num == 0) {
+        saveFile();
         exit(0);
+    }
     else if (num == 1 || num == 2 || num == 3 || num == 4 || num == 5) {
         colorValue = num;
         setTextColor();
@@ -241,11 +276,23 @@ void mainMenuHandler(int num) {
         glutShowWindow();
         glutSetWindow(mainWindow);
     }
+    else if (num == 11) {
+        currentPage -= 1;
+        if (currentPage == -1) {
+            currentPage = 0;
+        }
+    }
+    else if (num == 12) {
+        currentPage += 1;
+    }
     mainDisplayCallback();
 }
 
 
 void drawMenu() {
+    int navMenuId = glutCreateMenu(mainMenuHandler);
+    glutAddMenuEntry("Go back 1 page", 11);
+    glutAddMenuEntry("Go forward 1 page", 12);
     int colorMenuId = glutCreateMenu(mainMenuHandler);
     glutAddMenuEntry("Black", 1);
     glutAddMenuEntry("Green", 2);
@@ -258,6 +305,8 @@ void drawMenu() {
     glutAddMenuEntry("Times New Roman", 8);
     int mainMenuId = glutCreateMenu(mainMenuHandler);
     glutAddMenuEntry("Info", 9);
+    glutAddMenuEntry("Save", 10);
+    glutAddSubMenu("Page Navigation", navMenuId);
     glutAddSubMenu("Color", colorMenuId);
     glutAddSubMenu("Font", fontMenuId);
     glutAddMenuEntry("Quit", 0);
@@ -281,77 +330,124 @@ void drawHelpMenu() {
 }
 
 
-void drawHelpText() {
-    glColor3ub(0, 0, 0);
-
-    drawText("Type some text in the 'Editor' window to display it in black.", 5, 40);
-    drawText("Press the backspace key to remove a character.", 5, 60);
-    drawText("Press the 'Enter' key to start typing on the next row.", 5, 80);
-
-    drawText("Right-clicking in the 'Editor' window opens this menu:", 5, 120);
-    drawText("    'Info'  shows this 'Info' window", 5, 140);
-    drawText("    'Color' opens a submenu to change text color", 5, 160);
-    drawText("    'Font'  opens a submenu to change text font", 5, 180);
-    drawText("    'Quit'  terminates the program", 5, 200);
-
-    drawText("Right-clicking in this 'Info' window opens this menu:", 5, 240);
-    drawText("    'Close' hides this 'Info' window", 5, 260);
-}
-
-
 void drawEditorText() {
-    glColor3ubv(text_color);
-    glRasterPos2i(5, windowPadding + 30 + (currentLine * 24));  // Draw line indicator
-    glutBitmapCharacter(font, '|');
+    int line = 0; // Tracks the local line in a page
+    int overall_line = 0; // Tracks the current overall line in document
+    int page = 0; // The local page
+    totalPages = 1;
+    int x, y; // X and Y raster position coordinates
+    if (start_x == 0 && start_y == 0) {
+        x = windowPadding + 15;
+        y = windowPadding + 30;
+    }
+    else {
+        x = start_x;
+        y = start_y;
+    }
 
-    for (size_t line = 0; line < pages[currentPage].size(); line++) {
-        glRasterPos2i(windowPadding + 15, windowPadding + 30 + (line * 24));
-        for (unsigned i = 0; i < pages[currentPage][line].length(); i++)
-            glutBitmapCharacter(font, pages[currentPage][line][i]);
+    for (size_t ind = 0; ind < strings.size(); ind++) {
+        int r = colors[ind][0];
+        int g = colors[ind][1];
+        int b = colors[ind][2];
+
+        void* f = fonts[ind];
+        for (unsigned i = 0; i < strings[ind].length(); i++) {
+            if (int(strings[ind][i]) == 13) { // Enter key character found. Move to new line
+                line += 1;
+                overall_line += 1;
+                x = windowPadding + 15;
+                if (start_x == 0 && start_y == 0 || page != 0) {
+                    y = windowPadding + 30 + (line * 24);
+                }
+                else {
+                    y = start_y + (line * 24);
+                }
+                continue;
+            }
+            if (x > 585) { // X coordinate limit reached, move to a new line
+                line += 1;
+                overall_line += 1;
+                x = windowPadding + 15;
+                if (start_x == 0 && start_y == 0 || page != 0) {
+                    y = windowPadding + 30 + (line * 24);
+                }
+                else {
+                    y = start_y + (line * 24);
+                }
+            }
+            if (y > 780) { // Y coordinate limit reached, move to a new page
+                page += 1;
+                totalPages += 1;
+                overall_line += 1;
+                line = 0;
+                x = windowPadding + 15;
+                y = windowPadding + 30 + (line * 24);
+            }
+            if (page == currentPage) { // Only render text that belongs to the currentPage
+                glColor3ub(r, g, b);
+                glRasterPos2i(x, y);
+                x += glutBitmapWidth(f, strings[ind][i]);
+                glutBitmapCharacter(f, strings[ind][i]);
+            }
+        }
+
     }
 }
 
 
-void addPage() {
-    std::vector<std::string> newPage;
+// Gets the number of lines entered by the user
+int getTotalLines() { 
+    int overall_lines = 0;
+    int line = 0;
+    int x = windowPadding + 15;
+    int y = windowPadding + 30;
 
-    for (unsigned int i = 0; i < maxLines; i++)
-        newPage.push_back("");
-
-    pages.push_back(newPage);
+    for (size_t ind = 0; ind < strings.size(); ind++) {
+        void* f = fonts[ind];
+        for (unsigned i = 0; i < strings[ind].length(); i++) {
+            if (int(strings[ind][i]) == 13) {// Enter key
+                line += 1;
+                overall_lines += 1;
+                x = windowPadding + 15;
+                y = windowPadding + 30 + (line * 24);
+                continue;
+            }
+            if (x > 585) {
+                line += 1;
+                overall_lines += 1;
+                x = windowPadding + 15;
+                y = windowPadding + 30 + (line * 24);
+            }
+            x += glutBitmapWidth(f, strings[ind][i]);
+        }
+    }
+    return overall_lines;
 }
 
 
-void drawText(std::string input, int x, int y) {
-    glRasterPos2i(x, y);
-
-    for (unsigned i = 0; i < input.length(); i++)
-        glutBitmapCharacter(helpFont, input[i]);
-}
-
-
-// Draws any text displayed on screen
-void drawTextLayout() {
-    std::string page = "Page " + std::to_string(currentPage + 1) + " of " + std::to_string(pages.size());
-    drawCustomText(page, windowPadding + 5, windowHeight - 5, blackColor, helvetica); 
-    drawCustomText("Line: " + std::to_string(currentLine + 1), windowPadding + 215, windowHeight - 5, blackColor, helvetica);
-    drawCustomText("Characters: " + std::to_string(getNumberOfCharacters()), windowPadding + 375, windowHeight - 5, blackColor, helvetica);
-}
-
-
-int getNumberOfCharacters() {
+// Gets the number of characters entered by the user
+int getTotalCharacters() {
     int chars = 0;
-
-    for (size_t page = 0; page < pages.size(); page++) {
-        for (size_t line = 0; line < pages[page].size(); line++)
-            chars += pages[page][line].length();
+    for (size_t ind = 0; ind < strings.size(); ind++) {
+        chars += strings[ind].length();
     }
     return chars;
 }
 
 
+// Saves the contents of the what the user has entered to a file
+void saveFile() {
+    cout << "\nSaving to file. C:/Temp/typed.txt\n";
+    ofstream out("C:/Temp/typed.txt");
+    for (size_t ind = 0; ind < strings.size(); ind++) {
+        out << strings[ind];
+    }
+    out.close();
+}
+
+
 // Texts
-void drawCustomText(std::string text, int x, int y, int rgb[3], void* font) {
+void drawCustomText(string text, int x, int y, int rgb[3], void* font) {
 	draw_text = text;
 	glColor3ub(rgb[0], rgb[1], rgb[2]);
 	glRasterPos2i(x, y);
@@ -360,6 +456,29 @@ void drawCustomText(std::string text, int x, int y, int rgb[3], void* font) {
 		glutBitmapCharacter(font, draw_text[i]);
 }
 
+
+void drawHelpText() {
+    drawCustomText("Type some text in the 'Editor' window to display it in black.", 5, 40, blackColor, helpFont);
+    drawCustomText("Press the backspace key to remove a character.", 5, 60,blackColor, helpFont);
+    drawCustomText("Press the 'Enter' key to start typing on the next row.", 5, 80,blackColor, helpFont);
+
+    drawCustomText("Right-clicking in the 'Editor' window opens this menu:", 5, 120, blackColor, helpFont);
+    drawCustomText("    'Info'  shows this 'Info' window", 5, 140, blackColor, helpFont);
+    drawCustomText("    'Color' opens a submenu to change text color", 5, 160, blackColor, helpFont);
+    drawCustomText("    'Font'  opens a submenu to change text font", 5, 180, blackColor, helpFont);
+    drawCustomText("    'Quit'  terminates the program", 5, 200, blackColor, helpFont);
+
+    drawCustomText("Right-clicking in this 'Info' window opens this menu:", 5, 240, blackColor, helpFont);
+    drawCustomText("    'Close' hides this 'Info' window", 5, 260, blackColor, helpFont);
+}
+
+// Draws any text displayed on screen
+void drawTextLayout() {
+    string page = "Page " + to_string(currentPage + 1);
+    drawCustomText(page, windowPadding + 5, windowHeight - 5, blackColor, helvetica);
+    drawCustomText("Lines: " + to_string(getTotalLines()), windowPadding + 215, windowHeight - 5, blackColor, helvetica);
+    drawCustomText("Characters: " + to_string(getTotalCharacters()), windowPadding + 375, windowHeight - 5, blackColor, helvetica);
+}
 
 // Line segments
 void drawLine(int x1, int y1, int x2, int y2, int rgb[3]) {
