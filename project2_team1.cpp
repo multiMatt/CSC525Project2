@@ -8,7 +8,7 @@
  -Benjamin Pottebaum    (16.67%; )
  -Niko Robbins          (16.67%; created code)
  -Tristan Tyler         (16.67%; created code)
- -Alicia Willard        (16.67%; )
+ -Alicia Willard        (16.67%; created code)
  DESCRIPTION:           A text editor that renders text entered by a user using keyboard input,
                         then uses menus to change the text's color or font, to open or close
                         an info window, to save the text to a file, and to terminate the program.
