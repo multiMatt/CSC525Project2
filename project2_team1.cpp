@@ -9,8 +9,8 @@
  -Niko Robbins          (16.67%; created code)
  -Tristan Tyler         (16.67%; created code)
  -Alicia Willard        (16.67%; )
- DESCRIPTION:           A text editor that renders text entered by a user using keyboard input, 
-                        then uses menus to change the text's color or font, to open or close 
+ DESCRIPTION:           A text editor that renders text entered by a user using keyboard input,
+                        then uses menus to change the text's color or font, to open or close
                         an info window, to save the text to a file, and to terminate the program.
  NOTES:                 Must use C:\Temp as the location of the files or the root of the file hierarchy.
  FILES:                 project2_team1.cpp, labProject.sln, freeglut.dll, glut.h, freeglut.lib
@@ -41,6 +41,7 @@ using namespace std;
 // Misc Variables
 int fontValue;
 int colorValue;
+int backgroundColorValue;
 int entered = 0;
 int start_x = 0;
 int start_y = 0;
@@ -90,6 +91,7 @@ void drawEditorText();
 void drawHelpText();
 void setTextColor();
 void setFont();
+void setBackgroundColor();
 void drawLayout();
 void drawTextLayout();
 void drawCustomText(string text, int x, int y, int rgb[3], void* font);
@@ -131,7 +133,7 @@ int main(int argc, char** argv) {
 
 void mainInit() {
     glClearColor(1, 1, 1, 0);                     // Specify a background color: white
-	gluOrtho2D(0, windowWidth, windowHeight, 0);  // Specify a viewing area
+    gluOrtho2D(0, windowWidth, windowHeight, 0);  // Specify a viewing area
 }
 
 
@@ -261,9 +263,18 @@ void setFont() {
     currentIndex += 1;
 }
 
+void setBackgroundColor() {
+    if (backgroundColorValue == 9) {
+        glClearColor(0.44f, 0.5f, 0.56f, 1);
+    } else if (backgroundColorValue == 10) {
+        glClearColor(0.29f, 0.61f, 0.83f, 1);
+    } else if (backgroundColorValue == 11) {
+        glClearColor(1, 1, 1, 0);
+    }
+}
 
 void mainMenuHandler(int num) {
-    if (num == 10)
+    if (num == 15)
         saveFile();
     else if (num == 0) {
         saveFile();
@@ -277,18 +288,22 @@ void mainMenuHandler(int num) {
         fontValue = num;
         setFont();
     }
-    else if (num == 9) {
+    else if (num == 9 || num == 10 || num == 11) {
+        backgroundColorValue = num;
+        setBackgroundColor();
+    }
+    else if (num == 12) {
         glutSetWindow(helpWindow);
         glutShowWindow();
         glutSetWindow(mainWindow);
     }
-    else if (num == 11) {
+    else if (num == 13) {
         currentPage -= 1;
 
         if (currentPage == -1)
             currentPage = 0;
     }
-    else if (num == 12)
+    else if (num == 14)
         currentPage += 1;
 
     mainDisplayCallback();
@@ -297,8 +312,8 @@ void mainMenuHandler(int num) {
 
 void drawMenu() {
     int navMenuId = glutCreateMenu(mainMenuHandler);
-    glutAddMenuEntry("Go back 1 page", 11);
-    glutAddMenuEntry("Go forward 1 page", 12);
+    glutAddMenuEntry("Go back 1 page", 13);
+    glutAddMenuEntry("Go forward 1 page", 14);
     int colorMenuId = glutCreateMenu(mainMenuHandler);
     glutAddMenuEntry("Black", 1);
     glutAddMenuEntry("Green", 2);
@@ -309,12 +324,17 @@ void drawMenu() {
     glutAddMenuEntry("9 By 15", 6);
     glutAddMenuEntry("Helvetica", 7);
     glutAddMenuEntry("Times New Roman", 8);
+    int backgroundMenuId = glutCreateMenu(mainMenuHandler);
+    glutAddMenuEntry("Grey", 9);
+    glutAddMenuEntry("Blue", 10);
+    glutAddMenuEntry("White", 11);
     int mainMenuId = glutCreateMenu(mainMenuHandler);
-    glutAddMenuEntry("Info", 9);
-    glutAddSubMenu("Color", colorMenuId);
+    glutAddMenuEntry("Info", 12);
     glutAddSubMenu("Font", fontMenuId);
+    glutAddSubMenu("Text Color", colorMenuId);
+    glutAddSubMenu("Background Color", backgroundMenuId);
     glutAddSubMenu("Page Navigation", navMenuId);
-    glutAddMenuEntry("Save", 10);
+    glutAddMenuEntry("Save", 15);
     glutAddMenuEntry("Quit", 0);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
@@ -400,7 +420,7 @@ void drawEditorText() {
 
 
 // Gets the number of lines entered by the user
-int getTotalLines() { 
+int getTotalLines() {
     int overall_lines = 0;
     int line = 0;
     int x = windowPadding + 15;
@@ -455,12 +475,12 @@ void saveFile() {
 
 // Texts
 void drawCustomText(string text, int x, int y, int rgb[3], void* font) {
-	draw_text = text;
-	glColor3ub(rgb[0], rgb[1], rgb[2]);
-	glRasterPos2i(x, y);
+    draw_text = text;
+    glColor3ub(rgb[0], rgb[1], rgb[2]);
+    glRasterPos2i(x, y);
 
-	for (size_t i = 0; i < draw_text.length(); i++)
-		glutBitmapCharacter(font, draw_text[i]);
+    for (size_t i = 0; i < draw_text.length(); i++)
+        glutBitmapCharacter(font, draw_text[i]);
 }
 
 
@@ -472,14 +492,15 @@ void drawHelpText() {
 
     drawCustomText("Right-clicking in the 'Editor' window opens this menu:", 5, 140, blackColor, helpFont);
     drawCustomText("    'Info' displays the 'Info' window", 5, 160, blackColor, helpFont);
-    drawCustomText("    'Color' opens a submenu to change text color", 5, 180, blackColor, helpFont);
-    drawCustomText("    'Font' opens a submenu to change text font", 5, 200, blackColor, helpFont);
-    drawCustomText("    'Page Navigation' opens a submenu to go back or forward a page", 5, 220, blackColor, helpFont);
-    drawCustomText("    'Save' saves the text as a file to C:\\Temp\\typed.txt", 5, 240, blackColor, helpFont);
-    drawCustomText("    'Quit' terminates the program", 5, 260, blackColor, helpFont);
+    drawCustomText("    'Font' opens a submenu to change text font", 5, 180, blackColor, helpFont);
+    drawCustomText("    'Text Color' opens a submenu to change text color", 5, 200, blackColor, helpFont);
+    drawCustomText("    'Background Color' opens a submenu to change background color", 5, 220, blackColor, helpFont);
+    drawCustomText("    'Page Navigation' opens a submenu to go back or forward a page", 5, 240, blackColor, helpFont);
+    drawCustomText("    'Save' saves the text as a file to C:\\Temp\\typed.txt", 5, 260, blackColor, helpFont);
+    drawCustomText("    'Quit' terminates the program", 5, 280, blackColor, helpFont);
 
-    drawCustomText("Right-clicking in the 'Info' window opens this menu:", 5, 300, blackColor, helpFont);
-    drawCustomText("    'Close' hides the 'Info' window", 5, 320, blackColor, helpFont);
+    drawCustomText("Right-clicking in the 'Info' window opens this menu:", 5, 320, blackColor, helpFont);
+    drawCustomText("    'Close' hides the 'Info' window", 5, 340, blackColor, helpFont);
 }
 
 
