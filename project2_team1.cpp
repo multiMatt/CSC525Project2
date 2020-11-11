@@ -3,7 +3,7 @@
  ASSIGNMENT:            Project 2
  DATE:                  11/11/20
  TEAM MEMBERS (CONTRIBUTION PERCENTAGE; SUBTASKS):
- -David Engleman        (16.67%; )
+ -David Engleman        (16.67%; created code)
  -Matthew Glenn         (16.67%; created code)
  -Benjamin Pottebaum    (16.67%; )
  -Niko Robbins          (16.67%; created code)
