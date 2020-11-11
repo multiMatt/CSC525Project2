@@ -251,11 +251,19 @@ void setTextColor() {
 
 void setFont() {
     if (fontValue == 6)
-        font = GLUT_BITMAP_9_BY_15;
+        font = GLUT_BITMAP_8_BY_13;
     if (fontValue == 7)
-        font = GLUT_BITMAP_HELVETICA_18;
+        font = GLUT_BITMAP_9_BY_15;
     else if (fontValue == 8)
+        font = GLUT_BITMAP_TIMES_ROMAN_10;
+    else if (fontValue == 16)
         font = GLUT_BITMAP_TIMES_ROMAN_24;
+    else if (fontValue == 17)
+        font = GLUT_BITMAP_HELVETICA_10;
+    else if (fontValue == 18)
+        font = GLUT_BITMAP_HELVETICA_12;
+    else if (fontValue == 19)
+        font = GLUT_BITMAP_HELVETICA_18;
 
     strings.push_back("");
     fonts.push_back(font);
@@ -266,9 +274,11 @@ void setFont() {
 void setBackgroundColor() {
     if (backgroundColorValue == 9) {
         glClearColor(0.44f, 0.5f, 0.56f, 1);
-    } else if (backgroundColorValue == 10) {
+    }
+    else if (backgroundColorValue == 10) {
         glClearColor(0.29f, 0.61f, 0.83f, 1);
-    } else if (backgroundColorValue == 11) {
+    }
+    else if (backgroundColorValue == 11) {
         glClearColor(1, 1, 1, 0);
     }
 }
@@ -284,7 +294,7 @@ void mainMenuHandler(int num) {
         colorValue = num;
         setTextColor();
     }
-    else if (num == 6 || num == 7 || num == 8) {
+    else if (num == 6 || num == 7 || num == 8 || num == 16 || num == 17 || num == 18 || num == 19) {
         fontValue = num;
         setFont();
     }
@@ -321,9 +331,13 @@ void drawMenu() {
     glutAddMenuEntry("Red", 4);
     glutAddMenuEntry("Random", 5);
     int fontMenuId = glutCreateMenu(mainMenuHandler);
-    glutAddMenuEntry("9 By 15", 6);
-    glutAddMenuEntry("Helvetica", 7);
+    glutAddMenuEntry("8 by 13", 6);
+    glutAddMenuEntry("9 by 15", 7);
     glutAddMenuEntry("Times New Roman", 8);
+    glutAddMenuEntry("Times New Roman Large", 16);
+    glutAddMenuEntry("Helvetica Small", 17);
+    glutAddMenuEntry("Helvetica Medium", 18);
+    glutAddMenuEntry("Helvetica Large", 19);
     int backgroundMenuId = glutCreateMenu(mainMenuHandler);
     glutAddMenuEntry("Grey", 9);
     glutAddMenuEntry("Blue", 10);
@@ -487,8 +501,8 @@ void drawCustomText(string text, int x, int y, int rgb[3], void* font) {
 void drawHelpText() {
     drawCustomText("Click somewhere in the 'Editor' window to start typing.", 5, 40, blackColor, helpFont);
     drawCustomText("Type some text to display it in black.", 5, 60, blackColor, helpFont);
-    drawCustomText("Press the backspace key to remove a character.", 5, 80,blackColor, helpFont);
-    drawCustomText("Press the 'Enter' key to start typing on the next row.", 5, 100,blackColor, helpFont);
+    drawCustomText("Press the backspace key to remove a character.", 5, 80, blackColor, helpFont);
+    drawCustomText("Press the 'Enter' key to start typing on the next row.", 5, 100, blackColor, helpFont);
 
     drawCustomText("Right-clicking in the 'Editor' window opens this menu:", 5, 140, blackColor, helpFont);
     drawCustomText("    'Info' displays the 'Info' window", 5, 160, blackColor, helpFont);
