@@ -10,8 +10,9 @@
  -Tristan Tyler         (16.67%; created code)
  -Alicia Willard        (16.67%; created code)
  DESCRIPTION:           A text editor that renders text entered by a user using keyboard input,
-                        then uses menus to change the text's color or font, to open or close
-                        an info window, to save the text to a file, and to terminate the program.
+                        then uses menus to change the text's color or font, to change the editor
+                        background color, to open or close an info window, to save the text to 
+                        a file, and to terminate the program.
  NOTES:                 Must use C:\Temp as the location of the files or the root of the file hierarchy.
  FILES:                 project2_team1.cpp, labProject.sln, freeglut.dll, glut.h, freeglut.lib
  IDE/COMPILER:          Microsoft Visual Studio 2019
@@ -22,6 +23,7 @@
     4.      Type some text in the 'Editor' window   to DISPLAY the text in black
     5.      Right-click in the 'Editor' window      to OPEN the 'Editor' menu
             then select 'Info'                      to DISPLAY the 'Info' window
+    OR      select 'Background'                     to CHANGE the 'Editor' background color
     OR      select 'Color'                          to CHANGE the text color
     OR      select 'Font'                           to CHANGE the text font
     OR      select 'Page Navigation'                to GO back or forward a page
@@ -188,6 +190,7 @@ void specialCallback(int key, int x, int y) {
 void keyboardCallback(unsigned char key, int cursorX, int cursorY) {
     if (int(key) == 8 || int(key) == 127) {  // Backspace or delete pressed
         strings[currentIndex] = strings[currentIndex].substr(0, strings[currentIndex].length() - 1);
+
         if (getTotalCharacters() == 0) {  // Reset Starting text position
             start_x = 0;
             start_y = 0;
@@ -203,9 +206,9 @@ void keyboardCallback(unsigned char key, int cursorX, int cursorY) {
     if (int(key) != 8 && int(key) != 127) {
         strings[currentIndex] += key;
         currentPage = totalPages - 1;
-        if (can_change_start) {
+
+        if (can_change_start)
             can_change_start = false;
-        }
     }
     mainDisplayCallback();
 }
@@ -271,17 +274,16 @@ void setFont() {
     currentIndex += 1;
 }
 
+
 void setBackgroundColor() {
-    if (backgroundColorValue == 9) {
+    if (backgroundColorValue == 9)
         glClearColor(0.44f, 0.5f, 0.56f, 1);
-    }
-    else if (backgroundColorValue == 10) {
+    else if (backgroundColorValue == 10)
         glClearColor(0.29f, 0.61f, 0.83f, 1);
-    }
-    else if (backgroundColorValue == 11) {
+    else if (backgroundColorValue == 11)
         glClearColor(1, 1, 1, 0);
-    }
 }
+
 
 void mainMenuHandler(int num) {
     if (num == 15)
@@ -344,9 +346,9 @@ void drawMenu() {
     glutAddMenuEntry("White", 11);
     int mainMenuId = glutCreateMenu(mainMenuHandler);
     glutAddMenuEntry("Info", 12);
+    glutAddSubMenu("Background Color", backgroundMenuId);
     glutAddSubMenu("Font", fontMenuId);
     glutAddSubMenu("Text Color", colorMenuId);
-    glutAddSubMenu("Background Color", backgroundMenuId);
     glutAddSubMenu("Page Navigation", navMenuId);
     glutAddMenuEntry("Save", 15);
     glutAddMenuEntry("Quit", 0);
@@ -506,9 +508,9 @@ void drawHelpText() {
 
     drawCustomText("Right-clicking in the 'Editor' window opens this menu:", 5, 140, blackColor, helpFont);
     drawCustomText("    'Info' displays the 'Info' window", 5, 160, blackColor, helpFont);
-    drawCustomText("    'Font' opens a submenu to change text font", 5, 180, blackColor, helpFont);
-    drawCustomText("    'Text Color' opens a submenu to change text color", 5, 200, blackColor, helpFont);
-    drawCustomText("    'Background Color' opens a submenu to change background color", 5, 220, blackColor, helpFont);
+    drawCustomText("    'Background Color' opens a submenu to change background color", 5, 180, blackColor, helpFont);
+    drawCustomText("    'Font' opens a submenu to change text font", 5, 200, blackColor, helpFont);
+    drawCustomText("    'Text Color' opens a submenu to change text color", 5, 220, blackColor, helpFont);
     drawCustomText("    'Page Navigation' opens a submenu to go back or forward a page", 5, 240, blackColor, helpFont);
     drawCustomText("    'Save' saves the text as a file to C:\\Temp\\typed.txt", 5, 260, blackColor, helpFont);
     drawCustomText("    'Quit' terminates the program", 5, 280, blackColor, helpFont);
