@@ -3,15 +3,15 @@
  ASSIGNMENT:            Project 2
  DATE:                  11/11/20
  TEAM MEMBERS (CONTRIBUTION PERCENTAGE; SUBTASKS):
- -David Engleman        (16.67%; created code)
- -Matthew Glenn         (16.67%; created code)
- -Benjamin Pottebaum    (16.67%; )
- -Niko Robbins          (16.67%; created code)
- -Tristan Tyler         (16.67%; created code)
- -Alicia Willard        (16.67%; created code)
+ -David Engleman        (18%; created code)
+ -Matthew Glenn         (18%; created code)
+ -Benjamin Pottebaum    (10%; created some code)
+ -Niko Robbins          (18%; created code)
+ -Tristan Tyler         (18%; created code)
+ -Alicia Willard        (18%; created code)
  DESCRIPTION:           A text editor that renders text entered by a user using keyboard input,
                         then uses menus to change the text's color or font, to change the editor
-                        background's color, to open or close an info window, to save the text to 
+                        background's color, to open or close an info window, to save the text to
                         a file, and to terminate the program.
  NOTES:                 Must use C:\Temp as the location of the files or the root of the file hierarchy.
  FILES:                 project2_team1.cpp, labProject.sln, freeglut.dll, glut.h, freeglut.lib
@@ -245,6 +245,18 @@ void setTextColor() {
         text_color[1] = rand() % 256;
         text_color[2] = rand() % 256;
     }
+    else if (colorValue == 20) {
+        // Blue
+        text_color[0] = 0;
+        text_color[1] = 0;
+        text_color[2] = 255;
+    }
+    else if (colorValue == 21) {
+        // Orange
+        text_color[0] = 255;
+        text_color[1] = 69;
+        text_color[2] = 0;
+    }
     strings.push_back("");
     fonts.push_back(font);
     colors.push_back(text_color);
@@ -282,6 +294,9 @@ void setBackgroundColor() {
         glClearColor(0.29f, 0.61f, 0.83f, 1);
     else if (backgroundColorValue == 11)
         glClearColor(1, 1, 1, 0);
+    else if (backgroundColorValue == 22) {
+        glClearColor(0, 1, 1, 1);
+    }
 }
 
 
@@ -292,7 +307,7 @@ void mainMenuHandler(int num) {
         saveFile();
         exit(0);
     }
-    else if (num == 1 || num == 2 || num == 3 || num == 4 || num == 5) {
+    else if (num == 1 || num == 2 || num == 3 || num == 4 || num == 5 || num == 20 || num == 21) {
         colorValue = num;
         setTextColor();
     }
@@ -300,7 +315,7 @@ void mainMenuHandler(int num) {
         fontValue = num;
         setFont();
     }
-    else if (num == 9 || num == 10 || num == 11) {
+    else if (num == 9 || num == 10 || num == 11 || num == 22) {
         backgroundColorValue = num;
         setBackgroundColor();
     }
@@ -331,6 +346,8 @@ void drawMenu() {
     glutAddMenuEntry("Green", 2);
     glutAddMenuEntry("Purple", 3);
     glutAddMenuEntry("Red", 4);
+    glutAddMenuEntry("Blue", 20);
+    glutAddMenuEntry("Orange", 21);
     glutAddMenuEntry("Random", 5);
     int fontMenuId = glutCreateMenu(mainMenuHandler);
     glutAddMenuEntry("8 by 13", 6);
@@ -344,6 +361,7 @@ void drawMenu() {
     glutAddMenuEntry("Grey", 9);
     glutAddMenuEntry("Blue", 10);
     glutAddMenuEntry("White", 11);
+    glutAddMenuEntry("Cyan", 22);
     int mainMenuId = glutCreateMenu(mainMenuHandler);
     glutAddMenuEntry("Info", 12);
     glutAddSubMenu("Background Color", backgroundMenuId);
