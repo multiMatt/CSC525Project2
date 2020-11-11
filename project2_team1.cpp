@@ -11,7 +11,7 @@
  -Alicia Willard        (16.67%; created code)
  DESCRIPTION:           A text editor that renders text entered by a user using keyboard input,
                         then uses menus to change the text's color or font, to change the editor
-                        background color, to open or close an info window, to save the text to 
+                        background's color, to open or close an info window, to save the text to 
                         a file, and to terminate the program.
  NOTES:                 Must use C:\Temp as the location of the files or the root of the file hierarchy.
  FILES:                 project2_team1.cpp, labProject.sln, freeglut.dll, glut.h, freeglut.lib
@@ -23,9 +23,9 @@
     4.      Type some text in the 'Editor' window   to DISPLAY the text in black
     5.      Right-click in the 'Editor' window      to OPEN the 'Editor' menu
             then select 'Info'                      to DISPLAY the 'Info' window
-    OR      select 'Background'                     to CHANGE the 'Editor' background color
-    OR      select 'Color'                          to CHANGE the text color
+    OR      select 'Background Color'               to CHANGE the 'Editor' background color
     OR      select 'Font'                           to CHANGE the text font
+    OR      select 'Text Color'                     to CHANGE the text color
     OR      select 'Page Navigation'                to GO back or forward a page
     OR      select 'Save'                           to SAVE the text as a file
     OR      select 'Quit'                           to TERMINATE the program
